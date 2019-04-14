@@ -24,7 +24,7 @@
   </div>
 </template>
 <script>
-import moment from "moment";
+import dateHelper from './date-helper';
 
 export default {
   mounted() {
@@ -37,19 +37,15 @@ export default {
   props: {
     value: {
       type: [String, Date],
-      default: moment()
-        .date(1)
-        .format()
+      default: dateHelper.today().getTime(),
     }
   },
   data() {
     return {
-      firstOfMonth: moment()
-        .date(1)
-        .format(),
+      firstOfMonth: dateHelper.firstOfMonth(dateHelper.today()),
       showPicker: false,
       pickerDays: [],
-      selected: moment().format(),
+      selected: dateHelper.today().getTime(),
       month: "",
       year: ""
     };
@@ -57,58 +53,63 @@ export default {
   methods: {
     calculatePickerDays() {
       this.pickerDays = [];
-      const placeholder = moment(this.firstOfMonth);
-      this.month = placeholder.get("month");
-      this.year = placeholder.get("year");
-      const diff = placeholder.get("day");
-      placeholder.date(1).subtract(diff, "days");
+      let placeholder = new Date(this.firstOfMonth);
+      
+      this.month = placeholder.getMonth();
+      this.year = placeholder.getFullYear();
+      const day = placeholder.getDay();
+
+      placeholder = new Date(placeholder.getTime() - dateHelper.daysToMs(day));
 
       for (let w = 0; w < 6; w++) {
         let week = [];
+
         for (let d = 0; d < 7; d++) {
           const dayObj = {};
 
-          dayObj.date =
-            d === 0 && w === 0
-              ? moment(placeholder).format()
-              : moment(placeholder.add(1, "days")).format();
-          dayObj.dayOfWeek = moment(dayObj.date).format("D");
+          if (d === 0 && w === 0) {
+            dayObj.date = placeholder.getTime();
+          } else {
+            placeholder = new Date(placeholder.getTime() + dateHelper.daysToMs(1));
+            dayObj.date = placeholder.getTime();
+          }
+
+          dayObj.dayOfWeek = placeholder.getDate();
           week.push(dayObj);
         }
+
         this.pickerDays.push(week);
       }
     },
     isCurrentMonth(date) {
+      const newDate = new Date(date);
       return (
-        moment(date).get("month") === this.month &&
-        moment(date).get("year") === this.year
+        newDate.getMonth() === this.month &&
+        newDate.getFullYear() === this.year
       );
     },
     isSelected(date) {
-      return date === this.selected;
+      return new Date(date).getTime() === this.selected;
     },
     changeMonth(dir) {
+      let monthYear;
       if (dir === "add") {
-        this.firstOfMonth = moment(this.firstOfMonth)
-          .add(1, "months")
-          .format();
+        monthYear = dateHelper.nextMonth(this.month, this.year);
       } else {
-        this.firstOfMonth = moment(this.firstOfMonth)
-          .subtract(1, "months")
-          .format();
+        monthYear = dateHelper.previousMonth(this.month, this.year);
       }
+      this.firstOfMonth = dateHelper.firstOfMonth(new Date(monthYear.newYear, monthYear.newMonth, 1));
       this.calculatePickerDays();
     },
     selectDay(date) {
-      this.selected = moment(date).format();
+      const newDate = new Date(date);
+      this.selected = newDate.getTime();
       this.showPicker = false;
 
       if (!this.isCurrentMonth(date)) {
-        this.month = moment(this.selected).get("month");
-        this.year = moment(this.selected).get("year");
-        this.firstOfMonth = moment(date)
-          .date(1)
-          .format();
+        this.month = newDate.getMonth();
+        this.year = newDate.getFullYear();
+        this.firstOfMonth = dateHelper.firstOfMonth(new Date(this.year, this.month, 1)).getTime();
         this.calculatePickerDays();
       }
     },
@@ -125,10 +126,17 @@ export default {
   },
   computed: {
     selectedText() {
-      return moment(this.selected).format("M/DD/YYYY");
+      const date = new Date(this.selected);
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
     },
     monthYearText() {
-      return moment(this.firstOfMonth).format("MMM YYYY");
+      const date = new Date(this.firstOfMonth);
+      const month = dateHelper.getNameOfMonth(date.getMonth());
+      const year = date.getFullYear();
+      return `${month} ${year}`;
     }
   }
 };
