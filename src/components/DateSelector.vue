@@ -1,6 +1,15 @@
 <template>
   <div class="date-selector">
-    <span class="date-selector-text" @click="showPicker = !showPicker">{{ selectedText }}</span>
+    <span 
+      class="date-selector-text"
+      @click="showPicker = !showPicker"
+      @mousedown="changeDateTextClass"
+      @mouseup="changeDateTextClass"
+    >
+      {{ selectedText }}
+      <img class="today-icon" :src="todayIcon" ref="todayIcon" @click.stop="handleIconClick"/>
+    </span>
+    
     <transition name="fade">
       <div v-if="pickerDays.length" class="date-selector-picker" v-show="showPicker">
         <div v-for="w in 6" :key="`week_${w}`" class="week">
@@ -11,7 +20,7 @@
             @click="selectDay(pickerDays[w - 1][d - 1].date)"
             :class="dayClass(pickerDays[w - 1][d - 1].date)"
           >
-            <span>{{ pickerDays[w - 1][d - 1].day }}</span>
+            <span class="number">{{ pickerDays[w - 1][d - 1].day }}</span>
           </div>
         </div>
         <div class="date-selector-month-controls">
@@ -25,6 +34,7 @@
 </template>
 <script>
 import DateHelper from './date-helper';
+import todayIcon from './today-icon.png';
 
 export default {
   mounted() {
@@ -42,6 +52,7 @@ export default {
   },
   data() {
     return {
+      todayIcon,
       firstOfMonth: DateHelper().date(1).ms(),
       showPicker: false,
       pickerDays: [],
@@ -115,7 +126,19 @@ export default {
       if (!this.$el.contains(event.target)) {
         this.showPicker = false;
       }
-    }
+    },
+    handleIconClick() {
+      if (this.showPicker) this.showPicker = false;
+
+      const todayInMs = DateHelper().ms();
+      if(this.selected !== todayInMs) this.selected = todayInMs;
+    },
+    changeDateTextClass(event) {
+      const { type, target } = event;
+      if (target == this.$refs.todayIcon) return;
+      const classes = type === 'mousedown' ? 'date-selector-text active' : 'date-selector-text';
+      target.setAttribute('class', classes);
+    },
   },
   computed: {
     selectedText() {
@@ -147,8 +170,7 @@ export default {
 .arrow {
   border: solid white;
   border-width: 0 4px 4px 0;
-  display: inline-block;
-  padding: 4px;
+  padding: 5px;
   cursor: pointer;
 }
 
@@ -187,11 +209,28 @@ export default {
   }
 }
 .date-selector-text {
+  font-size: 16px;
+  text-align: justify;
+  padding-left: 20px;
   line-height: 35px;
   display: block;
   width: 100%;
   height: 100%;
   font-weight: bold;
+  &.active {
+    font-size: 15px;
+  }  
+}
+.today-icon {
+  height: 100%;
+  width: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  &:active {
+    border: 3px solid transparent;
+  }
 }
 .date-selector-picker {
   @include noselect;
@@ -200,16 +239,18 @@ export default {
   width: 210px;
   border: 1px solid black;
   z-index: 100;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .week {
   box-sizing: border-box;
   height: 30px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .day {
   position: relative;
-  display: inline-block;
   box-sizing: border-box;
   padding: 0;
   width: 30px;
@@ -222,26 +263,31 @@ export default {
     @include highlightDay;
   }
   &.selected-day {
-    background-color: lightyellow;
+    background-color: lighten(blue, 20%);
+    color: white;
     font-weight: bold;
     @include highlightDay;
   }
 
-  span {
+  .number {
     position: absolute;
-    font-size: 12px;
-    width: 12px;
-    height: 12px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
   }
 }
 .date-selector-month-controls {
   background-color: black;
   height: 30px;
   color: white;
+
+  i {
+    display: inline-block;
+  }
 }
+
 .date-selector-month-text {
   display: inline-block;
   line-height: 30px;
