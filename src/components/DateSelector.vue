@@ -268,6 +268,7 @@ export default {
   }  
 }
 .today-icon {
+  @include noselect;
   width: 35px;
   position: absolute;
   top: 0;
@@ -278,6 +279,7 @@ export default {
   }
 }
 .clear-icon {
+  @include noselect;
   width: 25px;
   height: 100%;
   position: absolute;
