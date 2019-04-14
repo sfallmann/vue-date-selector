@@ -2,12 +2,13 @@
   <div class="date-selector">
     <span 
       class="date-selector-text"
-      @click="showPicker = !showPicker"
+      @click="handleDateClick"
       @mousedown="changeDateTextClass"
       @mouseup="changeDateTextClass"
     >
       {{ selectedText }}
       <img class="today-icon" :src="todayIcon" ref="todayIcon" @click.stop="handleIconClick"/>
+      <img class="clear-icon" :src="clearIcon" ref="clearIcon" @click.stop="handleIconClick" v-show="showClearIcon"/>
     </span>
     
     <transition name="fade">
@@ -36,6 +37,7 @@
 <script>
 import DateHelper from './date-helper';
 import todayIcon from './today-icon.png';
+import clearIcon from './clear-symbol.png';
 
 export default {
   mounted() {
@@ -46,10 +48,11 @@ export default {
   destroyed() {
     document.removeEventListener("click", this.close);
   },
-  props: ['value'],
+  props: ['value', 'required'],
   data() {
     return {
       todayIcon,
+      clearIcon,
       firstOfMonth: '',
       showPicker: false,
       pickerDays: [],
@@ -123,13 +126,19 @@ export default {
         this.showPicker = false;
       }
     },
-    handleIconClick() {
-      const today = DateHelper();
-      if(this.selected !== today.ms()) this.selectDay(today.ms());
+    handleIconClick(event) {
+      const { target } = event;
+      
+      if (target === this.$refs.todayIcon) {
+        const today = DateHelper();
+        if(this.selected !== today.ms()) this.selectDay(today.ms());
+      } else {
+        this.$emit('input', '');
+      }
     },
     changeDateTextClass(event) {
       const { type, target } = event;
-      if (target == this.$refs.todayIcon) return;
+      if (target === this.$refs.todayIcon || target === this.$refs.clearIcon) return;
       const classes = type === 'mousedown' ? 'date-selector-text active' : 'date-selector-text';
       target.setAttribute('class', classes);
     },
@@ -150,10 +159,26 @@ export default {
     formatYear(event) {
       const { target } = event;
       target.value = target.value.replace(/\D/g,'');
+    },
+    handleDateClick() {
+      if(!this.showPicker) {
+        const date = DateHelper(this.selected);
+        const month = date.month();
+        const year = date.year();
+
+        if (this.month !== month || this.year !== year) {
+          this.month = month;
+          this.year = year;
+          this.firstOfMonth = DateHelper(this.year, this.month, 1).ms();
+          this.calculatePickerDays();
+        }
+      }
+      this.showPicker = !this.showPicker
     }
   },
   computed: {
     selectedText() {
+      if (!this.selected) return '';
       const date = DateHelper(this.selected);
       const month = date.month() + 1;
       const day = date.day();
@@ -165,7 +190,12 @@ export default {
       return { month: date.month('long'), year: date.year() }
     },
     selected() {
-      return DateHelper(this.value).ms();
+      if (this.required && !this.value) return DateHelper().ms();
+      return this.value ? DateHelper(this.value).ms() : '';
+    },
+    showClearIcon() {
+      if (this.required) return false;
+      return !!this.selected;
     }
   },
 };
@@ -226,12 +256,11 @@ export default {
 }
 .date-selector-text {
   font-size: 16px;
-  text-align: justify;
   text-align: center;
-
+  padding-left: 2px;
   line-height: 35px;
   display: block;
-  width: 115px;
+  width: 100%;
   height: 100%;
   font-weight: 700;
   &.active {
@@ -242,7 +271,18 @@ export default {
   width: 35px;
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
+  z-index: 100;
+  &:active {
+    border: 3px solid transparent;
+  }
+}
+.clear-icon {
+  width: 25px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 5px;
   z-index: 100;
   &:active {
     border: 3px solid transparent;

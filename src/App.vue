@@ -15,7 +15,7 @@ export default {
   },
   data() {
     return {
-      date: '12/30/2004',
+      date: '',
     }
   },
   methods: {
@@ -33,7 +33,7 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;   
  }
- 
+
 #app {
  
   text-align: center;
