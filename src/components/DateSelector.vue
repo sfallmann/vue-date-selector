@@ -38,25 +38,20 @@ import todayIcon from './today-icon.png';
 
 export default {
   mounted() {
+    this.firstOfMonth = DateHelper(this.selected).date(1).ms();
     this.calculatePickerDays();
     document.addEventListener("click", this.close);
   },
   destroyed() {
     document.removeEventListener("click", this.close);
   },
-  props: {
-    value: {
-      type: [String, Date],
-      default: DateHelper().ms(),
-    }
-  },
+  props: ['value'],
   data() {
     return {
       todayIcon,
-      firstOfMonth: DateHelper().date(1).ms(),
+      firstOfMonth: '',
       showPicker: false,
       pickerDays: [],
-      selected: DateHelper().ms(),
       month: "",
       year: ""
     };
@@ -107,7 +102,7 @@ export default {
     },
     selectDay(date) {
       const newDate = DateHelper(date);
-      this.selected = newDate.ms();
+      this.$emit('input', newDate.date());
       this.showPicker = false;
 
       if (!this.isCurrentMonth(date)) {
@@ -128,10 +123,8 @@ export default {
       }
     },
     handleIconClick() {
-      if (this.showPicker) this.showPicker = false;
-
-      const todayInMs = DateHelper().ms();
-      if(this.selected !== todayInMs) this.selected = todayInMs;
+      const today = DateHelper();
+      if(this.selected !== today.ms()) this.selectDay(today.ms());
     },
     changeDateTextClass(event) {
       const { type, target } = event;
@@ -151,8 +144,11 @@ export default {
     monthYearText() {
       const date = DateHelper(this.firstOfMonth);
       return `${date.month('long')} ${date.year()}`;
+    },
+    selected() {
+      return DateHelper(this.value).ms();
     }
-  }
+  },
 };
 </script>
 <style lang="scss">
@@ -211,10 +207,11 @@ export default {
 .date-selector-text {
   font-size: 16px;
   text-align: justify;
-  padding-left: 20px;
+  text-align: center;
+
   line-height: 35px;
   display: block;
-  width: 100%;
+  width: 115px;
   height: 100%;
   font-weight: bold;
   &.active {
@@ -222,8 +219,7 @@ export default {
   }  
 }
 .today-icon {
-  height: 100%;
-  width: auto;
+  width: 35px;
   position: absolute;
   top: 0;
   right: 0;

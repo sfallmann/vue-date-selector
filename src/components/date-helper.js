@@ -10,8 +10,14 @@ class DateHelper {
   }
 
   static normalize() {
-    const date = !arguments.length ? new Date() : new Date(...arguments);
+    // if there are no arguments get today
+    let date = !arguments.length ? new Date() : new Date(...arguments);
     
+    //if the date is invalid set it to today
+    if (Number.isNaN(date.getTime())) {
+      date = new Date();
+    }
+
     const month = date.getMonth();
     const day = date.getDate();
     const year = date.getFullYear();

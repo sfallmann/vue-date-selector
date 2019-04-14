@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h1>Date Selector Demo</h1>
-    <DateSelector id="my-date" value="2012-12-03"/>
+    <DateSelector id="my-date" v-model="date" />
   </div>
 </template>
 
@@ -12,6 +12,16 @@ export default {
   name: "App",
   components: {
     DateSelector
+  },
+  data() {
+    return {
+      date: '12/30/2004',
+    }
+  },
+  methods: {
+    test(value) {
+      this.date = value;
+    }
   }
 };
 </script>
