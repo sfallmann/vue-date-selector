@@ -1,75 +1,128 @@
 import namesOfMonths from './months';
 import namesOfDays from './days';
 
-function daysToMs(num) {
-  return num * 24 * 60 * 60 * 1000;
+const dateprop = Symbol('date');
+
+class DateHelper {
+  constructor() {
+    this[dateprop] = DateHelper.normalize(...arguments);
+    return this;
+  }
+
+  static normalize() {
+    const date = !arguments.length ? new Date() : new Date(...arguments);
+    
+    const month = date.getMonth();
+    const day = date.getDate();
+    const year = date.getFullYear();
+
+    return new Date(year, month, day);
+  }
+
+  month(format) {
+    const month = this[dateprop].getMonth();
+    return format === 'long' || format === 'short' ? namesOfMonths[month][format] : month;
+  }
+
+  dayOfWeek(format) {
+    const dayOfWeek = this[dateprop].getDay();
+    return format === 'long' || format === 'short' ? namesOfDays[dayOfWeek][format] : dayOfWeek;
+  }
+
+  day() {
+    return this[dateprop].getDate();
+  }
+
+  year() {
+    return this[dateprop].getFullYear();
+  }
+
+  ms() {
+    return this[dateprop].getTime();
+  }
+
+  date(num) {
+    if (num === undefined) {
+      return this[dateprop];
+    }
+    this[dateprop]= new Date(this.year(), this.month(), num);
+    return this;
+  }
+
+  static daysToMs(num) {
+    return num * 24 * 60 * 60 * 1000;
+  }
+
+  static previousMonthYear(month, year) {
+    return {
+      month: month === 0 ? 11 : month - 1,
+      year: month === 0 ? year - 1 : year,
+    }
+  }
+
+  static nextMonthYear(month, year) {
+    return {
+      month:  month === 11 ? 0 : month + 1,
+      year:  month === 11 ? year + 1 : year,
+    }
+  }
+
+  yesterday() {
+    return new Date(this._timestamp - DateHelper.daysToMs(1));
+  }
+
+  tomorrow() {
+    return new Date(this._timestamp + DateHelper.daysToMs(1));
+  }
+
+  add(type, num) {
+    let day = this.day();
+    let month = this.month();
+    let year = this.year();
+
+    switch (type) {
+      case 'day':
+        day += num;
+        break;
+      case 'month':
+        month += num;
+        break;
+      case 'year':
+        year += year;
+        break;
+    }
+    this[dateprop] = new Date(year, month, day);
+    return this;
+  }
+
+  subtract(type, num) {
+    let day = this.day();
+    let month = this.month();
+    let year = this.year();
+
+    switch (type) {
+      case 'day':
+        day -= num;
+        break;
+      case 'month':
+        month -= num;
+        break;
+      case 'year':
+        year -= year;
+        break;
+    }
+    this[dateprop] = new Date(year, month, day);
+    return this;
+  }
 }
 
-function today() {
-  const date = new Date();
-  const month = date.getMonth();
-  const day = date.getDate();
-  const year = date.getFullYear();
-  return new Date(year, month, day);
+function DateHelperFactory() {
+  return new DateHelper(...arguments);
 }
 
-function previousMonth(month, year) {
-  const newMonth = month === 0 ? 11 : month - 1;
-  const newYear = month === 0 ? year - 1 : year;
-  
-  return { newMonth, newYear };
-}
+DateHelperFactory.normalize = DateHelper.normalize;
+DateHelperFactory.daysToMs = DateHelper.daysToMs;
+DateHelperFactory.previousMonthYear = DateHelper.previousMonthYear;
+DateHelperFactory.nextMonthYear = DateHelper.nextMonthYear;
 
-function nextMonth(month, year) {
-  const newMonth = month === 11 ? 0 : month + 1;
-  const newYear = month === 11 ? year + 1 : year;
-  
-  return { newMonth, newYear };
-}
-
-function previousDay(date) {
-  const timestamp = new Date(date).getTime();
-  return new Date(timestamp - daysToMs(1));
-}
-
-function nextDay(date) {
-  const timestamp = new Date(date).getTime();
-  return new Date(timestamp + daysToMs(1));
-}
-
-function firstOfMonth(date) {
-  const startdate = new Date(date);
-  const month = startdate.getMonth();
-  const year = startdate.getFullYear();
-  return new Date(year, month, 1);
-};
-
-function getNameOfDay(day, format = 'long') {
-  return namesOfDays[day][format];
-}
-
-function getNameOfMonth(month, format = 'long') {
-  return namesOfMonths[month][format];
-}
-
-function formatDate(date) {
-  const d = new Date(date);
-  const month = d.getMonth();
-  const year = d.getFullYear();
-  const dayOfWeek = d.getDay();
-  const day = d.getDate();
-  return `${getNameOfDay(dayOfWeek)}, ${getNameOfMonth(month)} ${day} ${year}`;
-}
-
-export default {
-  daysToMs,
-  today,
-  previousMonth,
-  nextMonth,
-  previousDay,
-  nextDay,
-  firstOfMonth,
-  getNameOfDay,
-  getNameOfMonth,
-  formatDate,
-}
+export default DateHelperFactory;

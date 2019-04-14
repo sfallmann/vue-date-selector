@@ -11,7 +11,7 @@
             @click="selectDay(pickerDays[w - 1][d - 1].date)"
             :class="dayClass(pickerDays[w - 1][d - 1].date)"
           >
-            <span>{{ pickerDays[w - 1][d - 1].dayOfWeek }}</span>
+            <span>{{ pickerDays[w - 1][d - 1].day }}</span>
           </div>
         </div>
         <div class="date-selector-month-controls">
@@ -24,7 +24,7 @@
   </div>
 </template>
 <script>
-import dateHelper from './date-helper';
+import DateHelper from './date-helper';
 
 export default {
   mounted() {
@@ -37,15 +37,15 @@ export default {
   props: {
     value: {
       type: [String, Date],
-      default: dateHelper.today().getTime(),
+      default: DateHelper().ms(),
     }
   },
   data() {
     return {
-      firstOfMonth: dateHelper.firstOfMonth(dateHelper.today()),
+      firstOfMonth: DateHelper().date(1).ms(),
       showPicker: false,
       pickerDays: [],
-      selected: dateHelper.today().getTime(),
+      selected: DateHelper().ms(),
       month: "",
       year: ""
     };
@@ -53,63 +53,56 @@ export default {
   methods: {
     calculatePickerDays() {
       this.pickerDays = [];
-      let placeholder = new Date(this.firstOfMonth);
-      
-      this.month = placeholder.getMonth();
-      this.year = placeholder.getFullYear();
-      const day = placeholder.getDay();
+      let placeholder = DateHelper(this.firstOfMonth);
 
-      placeholder = new Date(placeholder.getTime() - dateHelper.daysToMs(day));
+      this.month = placeholder.month();
+      this.year = placeholder.year();
+      const diff = placeholder.dayOfWeek();
 
+      placeholder.subtract('day', diff);
       for (let w = 0; w < 6; w++) {
         let week = [];
 
         for (let d = 0; d < 7; d++) {
-          const dayObj = {};
-
-          if (d === 0 && w === 0) {
-            dayObj.date = placeholder.getTime();
-          } else {
-            placeholder = new Date(placeholder.getTime() + dateHelper.daysToMs(1));
-            dayObj.date = placeholder.getTime();
+          if (d !== 0 || w !== 0) {
+            placeholder.add('day', 1);
           }
-
-          dayObj.dayOfWeek = placeholder.getDate();
-          week.push(dayObj);
+          week.push({ date: placeholder.ms(), day: placeholder.day() });
         }
 
         this.pickerDays.push(week);
       }
     },
     isCurrentMonth(date) {
-      const newDate = new Date(date);
+      const newDate = DateHelper(date);
+
       return (
-        newDate.getMonth() === this.month &&
-        newDate.getFullYear() === this.year
+        newDate.month() === this.month &&
+        newDate.year() === this.year
       );
     },
     isSelected(date) {
-      return new Date(date).getTime() === this.selected;
+      return DateHelper(date).ms() === this.selected;
     },
     changeMonth(dir) {
       let monthYear;
       if (dir === "add") {
-        monthYear = dateHelper.nextMonth(this.month, this.year);
+        monthYear = DateHelper.nextMonthYear(this.month, this.year);
       } else {
-        monthYear = dateHelper.previousMonth(this.month, this.year);
+        monthYear = DateHelper.previousMonthYear(this.month, this.year);
       }
-      this.firstOfMonth = dateHelper.firstOfMonth(new Date(monthYear.newYear, monthYear.newMonth, 1));
+      this.firstOfMonth = DateHelper(monthYear.year, monthYear.month, 1).ms();
       this.calculatePickerDays();
     },
     selectDay(date) {
-      const newDate = new Date(date);
-      this.selected = newDate.getTime();
+      const newDate = DateHelper(date);
+      this.selected = newDate.ms();
       this.showPicker = false;
 
       if (!this.isCurrentMonth(date)) {
-        this.month = newDate.getMonth();
-        this.year = newDate.getFullYear();
-        this.firstOfMonth = dateHelper.firstOfMonth(new Date(this.year, this.month, 1)).getTime();
+        this.month = newDate.month();
+        this.year = newDate.year();
+        this.firstOfMonth = DateHelper(this.year, this.month, 1).ms();
         this.calculatePickerDays();
       }
     },
@@ -126,17 +119,15 @@ export default {
   },
   computed: {
     selectedText() {
-      const date = new Date(this.selected);
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      const year = date.getFullYear();
+      const date = DateHelper(this.selected);
+      const month = date.month() + 1;
+      const day = date.day();
+      const year = date.year();
       return `${month}/${day}/${year}`;
     },
     monthYearText() {
-      const date = new Date(this.firstOfMonth);
-      const month = dateHelper.getNameOfMonth(date.getMonth());
-      const year = date.getFullYear();
-      return `${month} ${year}`;
+      const date = DateHelper(this.firstOfMonth);
+      return `${date.month('long')} ${date.year()}`;
     }
   }
 };
