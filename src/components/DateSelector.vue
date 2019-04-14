@@ -171,6 +171,7 @@ export default {
 };
 </script>
 <style lang="scss">
+
 @mixin noselect {
   -webkit-user-select: none; /* Chrome all / Safari all */
   -moz-user-select: none; /* Firefox all */
@@ -232,7 +233,7 @@ export default {
   display: block;
   width: 115px;
   height: 100%;
-  font-weight: bold;
+  font-weight: 700;
   &.active {
     font-size: 15px;
   }  
@@ -280,7 +281,7 @@ export default {
   &.selected-day {
     background-color: lighten(blue, 20%);
     color: white;
-    font-weight: bold;
+    font-weight: 700;
     @include highlightDay;
   }
 
@@ -290,7 +291,7 @@ export default {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 700;
   }
 }
 .date-selector-month-controls {
@@ -308,19 +309,20 @@ export default {
     text-align: center;
     font-size: 16px;
     line-height: 30px;
-    font-weight: bold;
+    font-weight: 700;
     margin-right: 5px;
   }
 
   .year-input {
     display: inline-block;
-    font-weight: bold;
+    font-weight: 700;
     font-size: 16px;
     line-height: 30px;
     height: 100%;
-    padding: 0 1px 0 3px;
+    text-align: center;
     border: 0;
-    width: 38px;
+    padding: 0;
+    width: 40px;
     background-color: black;
     color: white;
     &:hover, &:focus {
