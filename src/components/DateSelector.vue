@@ -25,7 +25,8 @@
         </div>
         <div class="date-selector-month-controls">
           <i @click="changeMonth('sub')" class="arrow left"/>
-          <div class="date-selector-month-text">{{ monthYearText }}</div>
+          <div class="date-selector-month-text">{{ monthYear.month }}</div>
+          <input class="year-input" :value="monthYear.year" @keyup.enter="handleYearChange" @blur="handleYearChange" @input="formatYear" maxlength=4/>
           <i @click="changeMonth('add')" class="arrow right"/>
         </div>
       </div>
@@ -132,6 +133,24 @@ export default {
       const classes = type === 'mousedown' ? 'date-selector-text active' : 'date-selector-text';
       target.setAttribute('class', classes);
     },
+    handleYearChange(event) {
+      const { target } = event;
+      const date = DateHelper(this.firstOfMonth);
+      const year = Number.parseInt(target.value);
+      
+      if (target.value.length === 4) {
+        this.month = date.month();
+        this.year = year;
+        this.firstOfMonth = DateHelper(this.year, this.month, 1).ms();
+        this.calculatePickerDays();
+      } else {
+        target.value = date.year();
+      }
+    },
+    formatYear(event) {
+      const { target } = event;
+      target.value = target.value.replace(/\D/g,'');
+    }
   },
   computed: {
     selectedText() {
@@ -141,9 +160,9 @@ export default {
       const year = date.year();
       return `${month}/${day}/${year}`;
     },
-    monthYearText() {
+    monthYear() {
       const date = DateHelper(this.firstOfMonth);
-      return `${date.month('long')} ${date.year()}`;
+      return { month: date.month('long'), year: date.year() }
     },
     selected() {
       return DateHelper(this.value).ms();
@@ -282,14 +301,37 @@ export default {
   i {
     display: inline-block;
   }
+
+  .date-selector-month-text {
+    display: inline-block;
+    width: 80px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 30px;
+    font-weight: bold;
+    margin-right: 5px;
+  }
+
+  .year-input {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 30px;
+    height: 100%;
+    padding: 0 1px 0 3px;
+    border: 0;
+    width: 38px;
+    background-color: black;
+    color: white;
+    &:hover, &:focus {
+      cursor: pointer;
+      background-color: white;
+      color: black;
+    }
+  }
 }
 
-.date-selector-month-text {
-  display: inline-block;
-  line-height: 30px;
-  font-weight: bold;
-  width: 140px;
-}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s;
