@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h1>Date Selector Demo</h1>
-    <DateSelector id="my-date" v-model="date" />
+    <DateSelector id="my-date" v-model="date"/>
   </div>
 </template>
 
@@ -15,8 +15,8 @@ export default {
   },
   data() {
     return {
-      date: '',
-    }
+      date: ""
+    };
   },
   methods: {
     test(value) {
@@ -27,18 +27,20 @@ export default {
 </script>
 
 <style>
- @import url('https://fonts.googleapis.com/css?family=Roboto:400,700');
- body * {
-  font-family: 'Roboto', sans-serif;
+@import url("https://fonts.googleapis.com/css?family=Roboto:400,700");
+html {
+  font-size: 0.625rem;
+}
+body * {
+  font-family: "Roboto", sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;   
- }
+  -moz-osx-font-smoothing: grayscale;
+}
 
 #app {
- 
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 6rem;
   position: relative;
 }
 
@@ -46,5 +48,9 @@ export default {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+}
+
+h1 {
+  font-size: 3.2rem;
 }
 </style>
